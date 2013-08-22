@@ -21,12 +21,12 @@ The specification provides a set of logging formats (schemas) that are used for 
     - [Relational](#relational)
     - [File](#file)
         - [Binary](#binary)
-        - [Text)(#text)
+        - [Text](#text)
             - [Delimited](#delimited)
             - [Spreadsheet](#spreadsheet)
     - [Document](#document)
         - [MongoDB](#mongodb)
-    - [Key/Value)(#key-value)
+    - [Key/Value](#key-value)
  
 
 ### Transaction
