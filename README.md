@@ -178,3 +178,12 @@ Extends [Store](#store)
 For simple key/value-based stores, the keys that were used.
 
 - `key` - The key or array of keys to the values.
+
+---
+
+## Use Cases / Queries
+
+- all the sources involved in populating target X
+- all the targets that have been populated by source Y
+- list of logged records in target X, each with a list of sources
+- history/list of changes for target X ordered by time
