@@ -31,42 +31,14 @@ The specification provides a set of logging formats (schemas) that are used for 
 
 ### Transaction
 
-During an ETL process, an action is performed by some script with one or more sources and targets involved. etlog calls this unit a _transaction_ since it represents a complete iteration of ETL.
+Represents a complete ETL transaction such as a row insert, line append, field update, bulk table load, etc. The granularity of a transaction is dependent on where they are emitted or captured. For example, a script could emit a transaction while in a loop for every row that is processed being inserted into a database. Some ETL is simply copying a file from one location to the other or performing an in-database `INSERT .. (SELECT ...))` where the inviduals data is not exposed. 
 
-The below states that _the value in column 4 on line 5 in the users.csv found at /path/to/users.csv on host 148.29.12.100_ was _inserted_ _in the email column in the row with an id 38 in the users table in the socialapp database on the host 148.29.12.101 on port 5236_ on _August 8, 2013 at 5:43:03 AM_ by _parse-users.py at revision a32f87cb_.
-
-```javascript
-{
-    "timestamp": "2013-08-13T05:43:03.32344",
-    "action": "update",
-    "script": {
-        "uri": "https://github.com/cbmi/project/blob/master/parse-users.py",
-        "version": "a32f87cb"
-    },
-    "source": {
-        "type": "delimited",
-        "delimiter": ",",
-        "uri": "148.29.12.100/path/to/users.csv",
-        "name": "users.csv",
-        "line": 5,
-        "column": 4
-    },
-    "target": {
-        "type": "relational",
-        "uri": "148.29.12.101:5236",
-        "database": "socialapp",
-        "table": "users",
-        "row": { "id": 38 },
-        "column": "email"
-    }
-}
-```
-
-- `timestamp` - Timestamp of when the transaction occurred
-- `script` - An object representing the script used that performed the ETL and produced this transaction.
-- `source` - An object or array of objects representing the sources of data being used in the target output.
-- `target` - An object or array of objects representing the targets 
+- `timestamp` (required) - Timestamp of when the transaction occurred. If not supplied, a UTC timestamp will be set prior to storing.
+- `script` (required) - An object representing the [script](#script) used during the _transform_ stage.
+- `source` (required) - An object or array of objects representing the [sources](#store) of data used during _extraction_ stage.
+- `target` (required) - An object or array of objects representing the [targets](#store) during the _load_ stage.
 - `action` - The action that was performed on the target. This may not be applicable or available depending on what operation the script is performing. The value is generally target-specific; for example, `insert` and `delete` for row-based operations, `append` for file-based writing, `pop` for a Redis list, etc.
+- `namespace` - Arbitrary identifier to different transactions such as by project, branch, environment, etc.
 
 ### Script
 
@@ -178,6 +150,64 @@ Extends [Store](#store)
 For simple key/value-based stores, the keys that were used.
 
 - `key` - The key or array of keys to the values.
+
+---
+
+## Examples
+
+The value in _column 4_ on _line 5_ in the _users.csv_ file found at _/path/to/users.csv_ on host _148.29.12.100_ was used to populate the _email column_ in the _row with an id of 38_ in the _users_ table in the _socialapp_ database on the host _148.29.12.101_ on port _5236_ on _August 8, 2013 at 5:43:03 AM UTC_ by the _parse-users.py_ script at revision _a32f87cb_.
+
+```javascript
+{
+    "timestamp": "2013-08-13T05:43:03Z",
+    "script": {
+        "uri": "https://github.com/cbmi/project/blob/master/parse-users.py",
+        "version": "a32f87cb"
+    },
+    "source": {
+        "type": "delimited",
+        "delimiter": ",",
+        "uri": "148.29.12.100/path/to/users.csv",
+        "name": "users.csv",
+        "line": 5,
+        "column": 4
+    },
+    "target": {
+        "type": "relational",
+        "uri": "148.29.12.101:5236",
+        "database": "socialapp",
+        "table": "users",
+        "row": { "id": 38 },
+        "column": "email"
+    }
+}
+```
+
+The data in the _staging.users_ table are _inserted_ into the _public.users_. The code provided represents the SQL query used to perform the transformation.
+
+```javascript
+{
+    "timestamp": "2013-08-13T05:43:03Z",
+    "action": "insert",
+    "script": {
+        "code": "INSERT INTO public.users (SELECT * FROM staging.users WHERE moderated = true)"
+    },
+    "source": {
+        "type": "relational",
+        "uri": "148.29.12.101:5236",
+        "database": "socialapp",
+        "schema": "staging",        
+        "table": "users"
+    },
+    "target": {
+        "type": "relational",
+        "uri": "148.29.12.101:5236",
+        "database": "socialapp",
+        "schema": "public",
+        "table": "users"
+    }
+}
+```
 
 ---
 
