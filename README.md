@@ -1,5 +1,7 @@
 # etlog-spec
 
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/cbmi/etlog-spec/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
 The etlog specification defines ETL log formats for various data stores such as delimited files and relational databases. etlog enables tracking **where data comes from**, **how it was processed**, and **where it goes**. Together these components can referred to as an ETL **transaction**.
 
 The primary implementation for the spec is the [etlogd](https://github.com/cbmi/etlogd/) server and the [etlog](https://github.com/cbmi/etlog/) client. Both are implemented in Go, however the client libraries can and should be written in as many languages as possible to make it simple to integrate etlog into new and existing ETL processes. 
